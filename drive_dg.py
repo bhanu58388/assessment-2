@@ -173,18 +173,18 @@ def parse_args():
     parser.add_argument('--s_domains', default='GOSSIPCOP|POLITIFACT', type=str)
     parser.add_argument('--t_domains', default='Constraint', type=str,
                         choices=["Constraint", "GOSSIPCOP", "POLITIFACT"])
-    parser.add_argument('--data_path', type=str, default='/home/liuhui/unify/data')
+    parser.add_argument('--data_path', type=str, default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data'))
     parser.add_argument('--mode', type=str, default='binary', choices=['binary', 'multiple'])
     # choose fewer smale for testing
     parser.add_argument('--num_eval_samples', default=5, type=int)
     parser.add_argument('--shot_number', default=0, type=int)
-    parser.add_argument('--save_path', default="/reports.json", type=str)
-    parser.add_argument('--save_all_path', default='/home/liuhui/unify/data/', type=str)
+    parser.add_argument('--save_path', default="reports.json", type=str)
+    parser.add_argument('--save_all_path', default='data', type=str)
 
-    parser.add_argument('--model_name', type=str, default="flan-t5-xl",
+    parser.add_argument('--model_name', type=str, default="flan-t5-small",
                         choices=["flan-t5-xxl", "flan-t5-xl", "flan-t5-large", "flan-t5-base", "flan-t5-small", "Llama-2-7b-chat-hf",
-                                 "Llama-2-13b-chat-hf", "gpt-3.5-turbo"])
-    parser.add_argument('--device', default="cuda", choices=["cuda", "cpu"])
+                                 "Llama-2-13b-chat-hf", "gpt-5.5"])
+    parser.add_argument('--device', default="cpu", choices=["cuda", "cpu", "auto"])
     parser.add_argument('--evi_flag', action="store_true")
     parser.add_argument('--eval_mode', type=str, default='logics', choices=['logics', 'sampling'])
 
@@ -243,6 +243,8 @@ def parse_args():
 if __name__ == "__main__":
     ############################# eval by LLMs
     args = parse_args()
+    if args.device == "auto":
+        args.device = "cuda" if torch.cuda.is_available() else "cpu"
     # eval using zero-shot faln-t5 and llama2
     # e = Expert(dataset_name=args.dataset_name, mode=args.mode, data_path=args.data_path,
     #        gq_file=None, sq_file=None, model_name="flan-t5-xl", args=args)
@@ -305,7 +307,8 @@ if __name__ == "__main__":
     print("#################################")
     print(final_results_wd_con[max_para]["reported_metrics"])
     #
-    write_json_file([final_results_wd_con, final_results] , args.save_path)
+    os.makedirs(os.path.dirname(os.path.abspath(args.save_path)), exist_ok=True)
+    write_json_file([final_results_wd_con, final_results], args.save_path)
 
     ## for other decision models
     # conjuncts = [10]

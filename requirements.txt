@@ -1,0 +1,15 @@
+torch>=2.6
+transformers>=4.46,<6
+huggingface-hub>=0.25
+sentencepiece>=0.2
+protobuf>=4.25
+numpy>=1.26,<3
+scikit-learn>=1.4
+matplotlib>=3.8
+tqdm>=4.66
+PyYAML>=6.0
+jsonlines>=4.0
+openai>=1.50
+python-dotenv>=1.0
+tiktoken>=0.7
+backoff>=2.2

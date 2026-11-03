@@ -1,0 +1,12 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+api_key.txt
+data/
+llms/
+reports.json
+*.pt
+*.pth
+*.log
