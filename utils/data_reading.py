@@ -10,6 +10,8 @@ import random
 import torch
 import datetime
 import yaml
+from pathlib import Path
+from dotenv import load_dotenv
 
 def read_tsv_file(file_path):
     data = []
@@ -44,11 +46,26 @@ def read_yaml_file(file_path):
         except yaml.YAMLError as e:
             print(f"Error reading YAML file: {e}")
 
-def read_openapi(file_path='../api_key.txt'):
-    with open(file_path, mode='r') as txtfile:
-        for line in txtfile.readlines():
-            if 'api_key' in line:
-                return re.search(r'"([^"]*)"', line).group(1)
+def read_openapi(file_path=None):
+    """Read the API key from the environment, .env, or a legacy key file."""
+    project_root = Path(__file__).resolve().parents[1]
+    load_dotenv(project_root / ".env", override=False)
+    api_key = os.getenv("OPENAI_API_KEY")
+    if api_key:
+        return api_key.strip()
+
+    legacy_path = Path(file_path) if file_path else project_root / "api_key.txt"
+    if not legacy_path.is_absolute():
+        legacy_path = project_root / legacy_path
+    if legacy_path.is_file():
+        for line in legacy_path.read_text(encoding="utf-8").splitlines():
+            match = re.search(r'api_key\s*=\s*["\']([^"\']+)["\']', line)
+            if match:
+                return match.group(1).strip()
+
+    raise RuntimeError(
+        "OpenAI API key not found. Set OPENAI_API_KEY in your environment or in a local .env file."
+    )
 
 def random_sampling(dataset: dict, num_eval_samples: int):
     idxs = np.random.choice(len(dataset), size=num_eval_samples, replace=False)
@@ -68,7 +85,7 @@ def seed_everything(seed: int = 0):
 
 
 def label_re_mapping(dataset: list, dataset_name: str, mode: str):
-    print("Label re_mapping for {} dataset with {} mode. \n".format(dataset_name, mode))
+    print("Label re_mapping for {} dataset with {} mode. \r\n".format(dataset_name, mode))
     if dataset_name == 'LIAR-PLUS':
         new_dataset = []
         if mode == 'multiple':
@@ -77,7 +94,7 @@ def label_re_mapping(dataset: list, dataset_name: str, mode: str):
         else:
             rule = {'false': 'false', 'mostly-true': 'true',
                     'barely-true':'false', 'true':'true', 'pants-fire':'false'}
-        print("Label re_mapping rule is \n {}".format(rule))
+        print("Label re_mapping rule is \r\n {}".format(rule))
         for sample in dataset:
             if sample['label'] in rule.keys():
                 sample['re_label'] = rule[sample['label']]
